@@ -1,4 +1,4 @@
 User-agent: *
-Disallow:
-
-Sitemap: https://snoarlax.github.io/sitemap.xml
+Allow: /
+Allow: /index.html
+Disallow: /*
