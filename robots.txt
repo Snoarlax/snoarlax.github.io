@@ -1,7 +1,0 @@
----
-permalink: /robots.txt
----
-User-agent: *
-Allow: /
-Allow: /index.html
-Disallow: /*

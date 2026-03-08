@@ -1,0 +1,200 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+@layer base {
+  :root {
+    --background: 120 10% 4%;
+    --foreground: 120 100% 50%;
+
+    --card: 120 10% 6%;
+    --card-foreground: 120 100% 50%;
+
+    --popover: 120 10% 6%;
+    --popover-foreground: 120 100% 50%;
+
+    --primary: 120 100% 50%;
+    --primary-foreground: 120 10% 4%;
+
+    --secondary: 120 60% 15%;
+    --secondary-foreground: 120 100% 50%;
+
+    --muted: 120 20% 10%;
+    --muted-foreground: 120 60% 35%;
+
+    --accent: 120 80% 40%;
+    --accent-foreground: 120 10% 4%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 120 40% 20%;
+    --input: 120 40% 20%;
+    --ring: 120 100% 50%;
+
+    --radius: 0rem;
+
+    --terminal-glow: 120 100% 50%;
+    --terminal-dim: 120 60% 30%;
+    --terminal-bg: 120 10% 4%;
+    --terminal-scanline: 120 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Share Tech Mono', monospace;
+  }
+}
+
+/* Hide terminal on very small viewports */
+@media (max-width: 480px) {
+  .crt-frame {
+    display: none;
+  }
+  .lab-background::after {
+    content: 'Terminal requires a larger viewport.';
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: hsl(var(--foreground));
+    font-size: 1rem;
+    z-index: 10;
+  }
+}
+
+/* Wooden desk background */
+.lab-background {
+  position: relative;
+  background: #1a1a1a;
+}
+
+.lab-background::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: url('/images/desk-bg.jpg') center 40% / cover no-repeat;
+  filter: blur(12px);
+  transform: scale(1.05);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.lab-background > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Snorlax watermark */
+.snorlax-watermark {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  white-space: pre;
+  font-size: 10px;
+  line-height: 1.2;
+  color: hsl(120 100% 50% / 0.04);
+  pointer-events: none;
+  z-index: 10;
+  user-select: none;
+}
+
+.crt-scanlines {
+  overflow: hidden;
+}
+
+.crt-scanlines::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 50;
+  border-radius: 12px;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    hsl(120 100% 50% / 0.03) 2px,
+    hsl(120 100% 50% / 0.03) 4px
+  );
+}
+
+/* CRT screen flicker */
+.crt-flicker {
+  animation: crt-flicker 0.15s infinite;
+}
+
+@keyframes crt-flicker {
+  0% { opacity: 0.97; }
+  50% { opacity: 1; }
+  100% { opacity: 0.98; }
+}
+
+/* CRT vignette effect */
+.crt-vignette::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 49;
+  border-radius: 12px;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 60%,
+    hsl(120 10% 2% / 0.7) 100%
+  );
+}
+
+/* Terminal text glow */
+.terminal-glow {
+  text-shadow: 0 0 5px hsl(120 100% 50% / 0.8),
+               0 0 10px hsl(120 100% 50% / 0.4),
+               0 0 20px hsl(120 100% 50% / 0.2);
+}
+
+/* Cursor blink */
+@keyframes cursor-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: cursor-blink 1s step-end infinite;
+}
+
+/* CRT Frame - Monitor bezel */
+.crt-frame {
+  background: linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 50%, #0d0d0d 100%);
+  border-radius: 24px;
+  padding: 16px;
+  box-shadow:
+    0 0 0 2px #3a3a3a,
+    0 0 0 4px #1a1a1a,
+    inset 0 0 30px rgba(0, 0, 0, 0.5),
+    0 20px 60px rgba(0, 0, 0, 0.8),
+    0 0 80px rgba(0, 0, 0, 0.4);
+}
+
+.crt-screen {
+  background: hsl(var(--terminal-bg));
+  border-radius: 12px;
+  border: 2px solid hsl(120 20% 12%);
+  box-shadow:
+    inset 0 0 60px rgba(0, 255, 0, 0.03),
+    inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
