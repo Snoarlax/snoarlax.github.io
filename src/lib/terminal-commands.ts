@@ -168,7 +168,89 @@ Cross-origin isolation is definitely the way to go, and maintainers are looking 
   },
   {
     id: 2,
-    date: "2022-05-2023",
+    date: "2023-06-12",
+    title: "AWS Cognito exploitation",
+    body: `# How I [probably could have] hacked [around] 300 websites in [almost] a single script
+
+This is a post that describes the process I took when looking for means of exploiting AWS Cognito at scale. It aims to be an example for those interested in researching how to exploit any cloud service, as the process has been written to be as general as possible. It begins with an overview of Cognito and the methodology used to approach the project. It follows with a description of the process of finding potential misconfigurations in the service, enumerating instances of the service and confirming these instances were misconfigured. It concludes with takeaways from the project which may be of use for anyone interested in researching how to exploit cloud services at scale.
+
+## Basics
+
+Before describing the methodology of the project, some points need to be understood about the service. This post heavily references Cognito. Deep knowledge of this specific service is not important, but it is important to understand the following:
+
+- It is an identity provider (IdP) that can be integrated with other identity providers as a means of adding single sign on (SSO) to your application.
+- It also comes with other features such as the ability to add custom attributes to users who are registered in the IdP and to configure a role which can be assumed by users who authenticate with the IdP.
+
+If you are interested, read more at [https://cloudsec.wiki](https://www.secwiki.cloud/aws/services/Cognito) [1].
+
+## Methodology
+
+This section details the methodology used to find means of attacking Cognito at scale. I identified three requirements to exploit this service:
+
+- Finding misconfigurations in the service which can be impactfully exploited.
+- A means of enumerating instances of this service.
+- A means of confirming a misconfiguration in an instance of a service.
+
+This property is not unique to Cognito; when attacking other services at scale which are cloud hosted, you may find a similar pattern.
+
+### Finding misconfigurations
+
+This section describes the process of fulfilling the first requirement for the task, namely identifying means of misconfiguring Cognito.  
+
+A mix of local testing and researching other blog posts [2] allowed me to find several misconfigurations which had sufficient impact. I identified misconfigurations which can lead to account takeover vectors, access to the underlying AWS environment the service is hosted on and privilege escalation in the application which uses Cognito as an IdP. This was done through a combination of public bug bounty writeups and local testing of a Cognito instance I set up myself.
+
+### Enumerating instances of the service
+
+This section details how instances of Cognito were enumerated. It was an opportunity to find a creative solution for the problem as there is little online on how to enumerate Cognito instances. It concludes with key takeaways on how to approach attacking other cloud services.
+
+The exploits all have one root requirement, an active instance of a Cognito user pool. These are identified by a client id as finding a client id is equivalent to finding an instance of Cognito to attack. Scraping the web looking for login pages powered by Cognito is easy since they are often a subdomain of *.amazoncognito.com; however finding a Cognito domain does not necessarily give me its Cognito client id. I needed a way of linking these login pages to their respective client ids.
+
+In order to do this, I considered the context in which these client ids appear when using the service normally. Developers typically send users a link to their login page via a backlink, which is a link to a webpage appearing from another website [3].  These backlinks need to contain the client id for the Cognito login page to work, and research into backlinks lead me to discover SEO websites. SEO websites are SaaS offerings that aim to offer advice to website owners to improve their search rankings for various search engines. One metric they use are backlinks, and most offer a tool to identify backlinks to your webpage. 
+
+The websites claimed to identify around 11 million backlinks to the *.amazoncognito.com domain, but most severely limited the number of results I could retrieve. Furthermore, a lot of the results were duplicated, but despite this the technique yielded 146 unique active instances of Cognito client ids I could test. When combined with katana [4] and waybackurls [5], I got a total of 959 unique client ids. This was a far cry from the 11 million I had, but it sufficed as a proof of concept. With better SEO tooling and a more comprehensive scan, I could have gotten more client ids from this technique.
+
+### Confirming a misconfiguration in the service
+
+This section outlines finding a scaleable method of determining if a particular instance was misconfigured. It begins by describing the process of confirming a client id is active, and then shows how I would confirm if the client was vulnerable to the exploit.
+
+What I needed was an *oracle*, something that would take a client id and tell me if the instance was active. From reading the AWS CLI documentation, I found the following AWS CLI command told me a lot of information about the client id.
+
+\`\`\`bash
+aws cognito-idp initiate-auth --client-id <client ID> --auth-flow USER_PASSWORD_AUTH --auth-parameters USERNAME=random_user,PASSWORD=random_password
+\`\`\`
+
+If the client was not active, it would respond with an error complaining about the client id. If the USER\_PASSWORD\_AUTH authorisation flow was disabled, it would produce an error claiming so. I was able to call this programmatically for each client ID I had scanned, and found that there were 282 unique client ids working out of the 959 retrieved previously.
+
+For each misconfiguration, I found a process of scanning if a given client was vulnerable through local testing. However, when working on assets which you do not have explicit permission to test, it is important to first consider the risk when performing them. Scans can be categorised into the following:
+
+| Category | Description |
+| -------- | ----------- |
+| Passive  | The scan can not be directly attributed to the person performing the scan. |
+| Active    | The scan is similar to typical usage of the application from the perspective of the target. |
+| Intrusive | The scan acts beyond typical usage of the application. |
+
+In this case, all of the scans ranged from active to intrusive. Unfortunately, the scans required to confirm the vulnerabilities were intrusive so I was not able to run them. If I could, they could have potentially identified means of account takeover, gaining a foothold into the AWS environent or accessing unauthorised administrator panels in 282 different services.
+
+## Takeaways
+
+This section lists key takeaways from the project which can be applied when researching other means of exploiting cloud services.
+
+The project gave me an insight into the benefits and challenges people face if they choose to research means of exploiting cloud services. The shared responsibility model means there is a trust boundary between cloud service engineers and AWS. This is because the engineers trust AWS to secure certain parts of their system, but understand they are responsible for securing other parts of it. However, under the PaaS model this boundary can be particularly blurry. It is reasonable for a developer to assume that if they create a page without a registration feature, that people cannot register new users. However, cloud services introduce a new challenge for developers as there is another attack surface to consider. If that same developer uses Cognito to create the login page, they may not realise that an attacker can use the AWS Cognito API to create a new user. As an attacker, understanding where this boundary lies and which boundaries may misplaced by developers be is a key skill to exploiting cloud services.
+
+Furthermore, due to the isomorphic nature of cloud, attackers can programmatically scan for these discrepancies at scale. This means research into how a cloud service can be misconfigured alongside means of enumerating that service can often lead to exploiting hundreds of instances in a single script, perhaps even more.
+
+## References
+
+1. Kiani, S. (2023). Cognito. Retrieved from [https://www.secwiki.cloud/aws/services/Cognito](https://www.secwiki.cloud/aws/services/Cognito) 
+2. Lauritz, H. (2021). Retrieved from [https://security.lauritz-holtmann.de/advisories/flickr-account-takeover/](https://security.lauritz-holtmann.de/advisories/flickr-account-takeover/) 
+3. Backlink.com. (2023). Retrieved from [https://backlinko.com/hub/seo/backlinks](https://backlinko.com/hub/seo/backlinks)
+4. Projectdiscovery. (n.d.). Retrieved from [https://github.com/projectdiscovery/katana](https://github.com/projectdiscovery/katana)
+5. Tomnomnom. (n.d.). Retrieved from [https://github.com/tomnomnom/waybackurls](https://github.com/tomnomnom/waybackurls) 
+`,
+  },
+  {
+    id: 3,
+    date: "2022-05-22",
     title: "A technical deep dive into Cross Site Request Forgery",
     body: `# Introduction
 
@@ -294,88 +376,6 @@ Using HTTP cookies (no date) MDN Web Docs. Available at: [https://developer.mozi
 [Repository for testing](https://github.com/Snoarlax/csrf_poc)
 `,
   },
-  {
-    id: 3,
-    date: "2023-06-12",
-    title: "AWS Cognito exploitation",
-    body: `# How I [probably could have] hacked [around] 300 websites in [almost] a single script
-
-This is a post that describes the process I took when looking for means of exploiting AWS Cognito at scale. It aims to be an example for those interested in researching how to exploit any cloud service, as the process has been written to be as general as possible. It begins with an overview of Cognito and the methodology used to approach the project. It follows with a description of the process of finding potential misconfigurations in the service, enumerating instances of the service and confirming these instances were misconfigured. It concludes with takeaways from the project which may be of use for anyone interested in researching how to exploit cloud services at scale.
-
-## Basics
-
-Before describing the methodology of the project, some points need to be understood about the service. This post heavily references Cognito. Deep knowledge of this specific service is not important, but it is important to understand the following:
-
-- It is an identity provider (IdP) that can be integrated with other identity providers as a means of adding single sign on (SSO) to your application.
-- It also comes with other features such as the ability to add custom attributes to users who are registered in the IdP and to configure a role which can be assumed by users who authenticate with the IdP.
-
-If you are interested, read more at [https://cloudsec.wiki](https://www.secwiki.cloud/aws/services/Cognito) [1].
-
-## Methodology
-
-This section details the methodology used to find means of attacking Cognito at scale. I identified three requirements to exploit this service:
-
-- Finding misconfigurations in the service which can be impactfully exploited.
-- A means of enumerating instances of this service.
-- A means of confirming a misconfiguration in an instance of a service.
-
-This property is not unique to Cognito; when attacking other services at scale which are cloud hosted, you may find a similar pattern.
-
-### Finding misconfigurations
-
-This section describes the process of fulfilling the first requirement for the task, namely identifying means of misconfiguring Cognito.  
-
-A mix of local testing and researching other blog posts [2] allowed me to find several misconfigurations which had sufficient impact. I identified misconfigurations which can lead to account takeover vectors, access to the underlying AWS environment the service is hosted on and privilege escalation in the application which uses Cognito as an IdP. This was done through a combination of public bug bounty writeups and local testing of a Cognito instance I set up myself.
-
-### Enumerating instances of the service
-
-This section details how instances of Cognito were enumerated. It was an opportunity to find a creative solution for the problem as there is little online on how to enumerate Cognito instances. It concludes with key takeaways on how to approach attacking other cloud services.
-
-The exploits all have one root requirement, an active instance of a Cognito user pool. These are identified by a client id as finding a client id is equivalent to finding an instance of Cognito to attack. Scraping the web looking for login pages powered by Cognito is easy since they are often a subdomain of *.amazoncognito.com; however finding a Cognito domain does not necessarily give me its Cognito client id. I needed a way of linking these login pages to their respective client ids.
-
-In order to do this, I considered the context in which these client ids appear when using the service normally. Developers typically send users a link to their login page via a backlink, which is a link to a webpage appearing from another website [3].  These backlinks need to contain the client id for the Cognito login page to work, and research into backlinks lead me to discover SEO websites. SEO websites are SaaS offerings that aim to offer advice to website owners to improve their search rankings for various search engines. One metric they use are backlinks, and most offer a tool to identify backlinks to your webpage. 
-
-The websites claimed to identify around 11 million backlinks to the *.amazoncognito.com domain, but most severely limited the number of results I could retrieve. Furthermore, a lot of the results were duplicated, but despite this the technique yielded 146 unique active instances of Cognito client ids I could test. When combined with katana [4] and waybackurls [5], I got a total of 959 unique client ids. This was a far cry from the 11 million I had, but it sufficed as a proof of concept. With better SEO tooling and a more comprehensive scan, I could have gotten more client ids from this technique.
-
-### Confirming a misconfiguration in the service
-
-This section outlines finding a scaleable method of determining if a particular instance was misconfigured. It begins by describing the process of confirming a client id is active, and then shows how I would confirm if the client was vulnerable to the exploit.
-
-What I needed was an *oracle*, something that would take a client id and tell me if the instance was active. From reading the AWS CLI documentation, I found the following AWS CLI command told me a lot of information about the client id.
-
-\`\`\`bash
-aws cognito-idp initiate-auth --client-id <client ID> --auth-flow USER_PASSWORD_AUTH --auth-parameters USERNAME=random_user,PASSWORD=random_password
-\`\`\`
-
-If the client was not active, it would respond with an error complaining about the client id. If the USER\_PASSWORD\_AUTH authorisation flow was disabled, it would produce an error claiming so. I was able to call this programmatically for each client ID I had scanned, and found that there were 282 unique client ids working out of the 959 retrieved previously.
-
-For each misconfiguration, I found a process of scanning if a given client was vulnerable through local testing. However, when working on assets which you do not have explicit permission to test, it is important to first consider the risk when performing them. Scans can be categorised into the following:
-
-| Category | Description |
-| -------- | ----------- |
-| Passive  | The scan can not be directly attributed to the person performing the scan. |
-| Active    | The scan is similar to typical usage of the application from the perspective of the target. |
-| Intrusive | The scan acts beyond typical usage of the application. |
-
-In this case, all of the scans ranged from active to intrusive. Unfortunately, the scans required to confirm the vulnerabilities were intrusive so I was not able to run them. If I could, they could have potentially identified means of account takeover, gaining a foothold into the AWS environent or accessing unauthorised administrator panels in 282 different services.
-
-## Takeaways
-
-This section lists key takeaways from the project which can be applied when researching other means of exploiting cloud services.
-
-The project gave me an insight into the benefits and challenges people face if they choose to research means of exploiting cloud services. The shared responsibility model means there is a trust boundary between cloud service engineers and AWS. This is because the engineers trust AWS to secure certain parts of their system, but understand they are responsible for securing other parts of it. However, under the PaaS model this boundary can be particularly blurry. It is reasonable for a developer to assume that if they create a page without a registration feature, that people cannot register new users. However, cloud services introduce a new challenge for developers as there is another attack surface to consider. If that same developer uses Cognito to create the login page, they may not realise that an attacker can use the AWS Cognito API to create a new user. As an attacker, understanding where this boundary lies and which boundaries may misplaced by developers be is a key skill to exploiting cloud services.
-
-Furthermore, due to the isomorphic nature of cloud, attackers can programmatically scan for these discrepancies at scale. This means research into how a cloud service can be misconfigured alongside means of enumerating that service can often lead to exploiting hundreds of instances in a single script, perhaps even more.
-
-## References
-
-1. Kiani, S. (2023). Cognito. Retrieved from [https://www.secwiki.cloud/aws/services/Cognito](https://www.secwiki.cloud/aws/services/Cognito) 
-2. Lauritz, H. (2021). Retrieved from [https://security.lauritz-holtmann.de/advisories/flickr-account-takeover/](https://security.lauritz-holtmann.de/advisories/flickr-account-takeover/) 
-3. Backlink.com. (2023). Retrieved from [https://backlinko.com/hub/seo/backlinks](https://backlinko.com/hub/seo/backlinks)
-4. Projectdiscovery. (n.d.). Retrieved from [https://github.com/projectdiscovery/katana](https://github.com/projectdiscovery/katana)
-5. Tomnomnom. (n.d.). Retrieved from [https://github.com/tomnomnom/waybackurls](https://github.com/tomnomnom/waybackurls) 
-`,
-  },
 ];
 
 const COMMANDS: Record<string, () => string> = {
@@ -431,14 +431,14 @@ ${SNORLAX_ASCII}
 ║  NAME:     Shahnoor Kiani                ║
 ║  ROLE:     Penetration Tester            ║
 ║  FACTION:  Rootshell Security            ║
-║  LEVEL:    Senior Penetration Tester     ║
-║  Uptime:   ${String(years + " years").padEnd(30)}║
+║  ROLE:     Senior Penetration Tester     ║
+║  EXP:      ${String(years + " years").padEnd(30)}║
 ║                                          ║
 ║  SKILLS:                                 ║
 ║    [████████████] Bash                   ║
 ║    [███████████ ] Python                 ║
-║    [██████████  ] Linux Kernel           ║
-║    [█████████   ] AWS Cloud              ║
+║    [██████████  ] AWS Cloud              ║
+║    [█████████   ] Linux Kernel           ║
 ║    [████████████] Speech                 ║
 ║                                          ║
 ║  STATUS:   Active - Accepting Jobs       ║

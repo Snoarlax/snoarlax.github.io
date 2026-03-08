@@ -54,21 +54,20 @@
   }
 }
 
-/* Hide terminal on very small viewports */
+/* Mobile adjustments */
 @media (max-width: 480px) {
   .crt-frame {
-    display: none;
+    min-width: unset !important;
+    width: 95% !important;
+    border-radius: 12px;
+    padding: 8px;
   }
-  .lab-background::after {
-    content: 'Terminal requires a larger viewport.';
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: hsl(var(--foreground));
-    font-size: 1rem;
-    z-index: 10;
+  .crt-screen {
+    padding: 12px !important;
+    font-size: 12px;
+  }
+  .snorlax-watermark {
+    font-size: 6px;
   }
 }
 

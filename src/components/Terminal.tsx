@@ -90,8 +90,8 @@ const Terminal = () => {
   const focusInput = () => inputRef.current?.focus();
 
   return (
-    <div className="lab-background min-h-screen flex flex-col items-center justify-start pt-[4vh] cursor-text" onClick={focusInput}>
-      <div className="crt-frame crt-scanlines crt-vignette crt-flicker w-2/3 min-w-[480px] relative">
+    <div className="lab-background min-h-screen flex flex-col items-center justify-start pt-[2vh] sm:pt-[4vh] cursor-text px-2 sm:px-0" onClick={focusInput}>
+      <div className="crt-frame crt-scanlines crt-vignette crt-flicker w-[95%] sm:w-2/3 min-w-0 sm:min-w-[480px] relative">
           <div className="relative">
             {/* Snorlax watermark - outside scroll container */}
             <div className="snorlax-watermark" aria-hidden="true">
@@ -139,18 +139,22 @@ const Terminal = () => {
             {/* Input line */}
             <form onSubmit={handleSubmit} className="flex items-center text-sm">
               <span className="terminal-glow text-accent">&gt;&nbsp;</span>
-              <span className="cursor-blink terminal-glow text-foreground" style={{ order: 1 }}>█</span>
-              <input
-                ref={inputRef}
-                type="text"
-                value={currentInput}
-                onChange={(e) => setCurrentInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="bg-transparent border-none outline-none terminal-glow text-foreground font-[inherit] text-sm w-0 min-w-0"
-                style={{ width: currentInput.length + 'ch' }}
-                autoComplete="off"
-                spellCheck={false}
-              />
+              <div className="relative flex-1 min-w-0">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={currentInput}
+                  onChange={(e) => setCurrentInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="bg-transparent border-none outline-none terminal-glow text-foreground font-[inherit] text-sm w-full caret-transparent"
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                <span
+                  className="cursor-blink terminal-glow text-foreground absolute top-0 pointer-events-none"
+                  style={{ left: currentInput.length + 'ch' }}
+                >█</span>
+              </div>
             </form>
           </>
         )}
