@@ -411,7 +411,7 @@ ${rc}
 ║  NAME:     Shahnoor Kiani                ║
 ║  ROLE:     Penetration Tester            ║
 ║  FACTION:  Rootshell Security            ║
-║  ROLE:    Senior Penetration Tester      ║
+║  ROLE:     Senior Penetration Tester     ║
 ║  EXP:      ${(Math.round((Date.now()-e.getTime())/(1e3*60*60*24*365.25))+" years").padEnd(30)}║
 ║                                          ║
 ║  SKILLS:                                 ║
