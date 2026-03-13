@@ -45,6 +45,60 @@ export const BOOT_MESSAGES = [
   "[    0.135000] All systems nominal.",
   "[    0.150000] Boot complete. Welcome, User.",
 ];
+const CONFERENCE_TALKS = [
+  {
+    id: 1,
+    date: "2023-09-20",
+    title: "Doesn't that cloud look like all your data?",
+    location: "AWS Community Day NL, Utrecht",
+  },
+  {
+    id: 2,
+    date: "2023-09-23",
+    title: "Doesn't that cloud look like all your data?",
+    location: "Bsides Cambridge, Cambridge",
+  },
+  {
+    id: 3,
+    date: "2023-11-04",
+    title: "Doesn't that cloud look like all your data?",
+    location: "Bsides Bristol, Bristol",
+  },
+]
+
+
+const PROJECTS = [
+  {
+    id: 1,
+    status: "COMPLETE",
+    title: "AsteroidOS HackWatch",
+    body: `Writeup in progress\n`
+  },
+  {
+    id: 2,
+    status: "In Progress",
+    title: "Kernel Driver development",
+    body: `Project in progress\n`
+  },
+  {
+    id: 3,
+    status: "COMPLETE",
+    title: "Websocket interceptor",
+    body: `Writeup in progress\n`
+  },
+  {
+    id: 4,
+    status: "COMPLETE",
+    title: "Scaling up DAST scanning",
+    body: `Writeup in progress\n`
+  },
+  {
+    id: 4,
+    status: "backbench :(",
+    title: "Recreating zero days for IoT devices",
+    body: `Will come back to this one after I get more familiar with the Linux Kernel.\n`
+  },
+]
 
 const BLOG_POSTS = [
   {
@@ -97,7 +151,7 @@ Cross-origin read blocking is a mechanism browsers use to uphold the same-origin
 
 It is important to note that CORB is implemented within the browser process, so it is a completely different process than where the untrusted code responsible for fetching the resources lies. This is key, since it allows browsers to benefit from the security boundary formed between processes implemented by the operating system. It is worthwhile understanding CORB to properly understand cross-origin isolation, since the COEP header just extends CORB by adding some more checks when blocking subresources from being embedded.
 
-![CORB Diagram](CORB.png "A diagram demonstrating the flow for CORB. ")
+![CORB Diagram](/images/CORB.png "A diagram demonstrating the flow for CORB. ")
 
 ## Data Structures
 
@@ -115,7 +169,7 @@ A browsing context group is a list of browsing contexts that have references to 
 
 The browser consists of a browser process and a renderer process. If you want a quick way of understanding it, this model is analogous to the kernel-space and user-space distinction made in modern operating systems, with unprivileged renderer processes making calls to the privileged browser process to access sensitive functionality. Some checks are still performed in the renderer process (such as content security policy checks), but lots of checks required to enforce the same origin policy are done by the browser process.
 
-![Browser+Renderer Diagram](browser_renderer.png "A diagram demonstrating a simplified architecture of modern browsers. ")
+![Browser+Renderer Diagram](/images/browser_renderer.png "A diagram demonstrating a simplified architecture of modern browsers. ")
 
 #### Browser Process
 
@@ -382,26 +436,30 @@ const COMMANDS: Record<string, () => string> = {
   help: () => `
 AVAILABLE COMMANDS:
 ═══════════════════
-  [PERSONAL INFO]
-  help        Display this help message
-  whoami      About the terminal operator
-  status      System status report
+  **[PERSONAL INFO]**
+  help          Display this help message
+  whoami        About the terminal operator        **<-- START HERE**
+  status        System status report
+    
+  **[RESEARCH]**  
+  blog          List all blog entries
+  blog <id>     Read a specific blog entry
+  project      List all projects
+  project <id>  See a specific project entry
+  conference    List all conference talks performed
   
-  [RESEARCH]
-  blog        List all blog entries
-  blog <id>   Read a specific blog entry
-
-  [UTIL]
-  clear       Clear terminal output
-
-  [CONTACT]
-  email       Display contact email
-  pgp         Display PGP key
-
-  [MISC]
-  neofetch    Display system info with ASCII art
-  dmesg       Reprint boot messages
-  date        Display current date
+  **[UTIL]**  
+  clear         Clear terminal output
+  
+  **[CONTACT]**  
+  email         Display contact email
+  github        Display GitHub
+  pgp           Display PGP key
+  
+  **[MISC]**  
+  neofetch      Display system info with ASCII art
+  dmesg         Reprint boot messages
+  date          Display current date
 `,
 
   neofetch: () => {
@@ -424,8 +482,9 @@ ${SNORLAX_ASCII}
     const startDate = new Date('2022-06-01');
     const years = Math.round((Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
     return `
+**Highly technical, driven security consultant with excellent communication and commercial skills. Develops technical solutions to solve business problems!**
 ╔══════════════════════════════════════════╗
-║          OPERATOR DOSSIER                ║
+║  OPERATOR DOSSIER                        ║
 ╠══════════════════════════════════════════╣
 ║                                          ║
 ║  NAME:     Shahnoor Kiani                ║
@@ -459,6 +518,20 @@ ${SNORLAX_ASCII}
 ╚══════════════════════════════════════════╝
 `,
 
+
+  github: () => `
+╔══════════════════════════════════════════╗
+║  GITHUB                                  ║
+╠══════════════════════════════════════════╣
+║                                          ║
+║  USER: Snoarlax                          ║
+║  LINK: [https://github.com/Snoarlax/](https://github.com/Snoarlax/)      ║
+║                                          ║
+║  Status: ACTIVE                          ║
+║                                          ║
+╚══════════════════════════════════════════╝
+`,
+
   blog: () => {
     let output = "\nBLOG ENTRIES:\n═══════════════════\n";
     BLOG_POSTS.forEach((post) => {
@@ -468,13 +541,29 @@ ${SNORLAX_ASCII}
     return output;
   },
 
+  project: () => {
+    let output = "\nPROJECTS:\n═══════════════════\n";
+    PROJECTS.forEach((post) => {
+      output += `  [${post.id}] ${post.status} - ${post.title}\n`;
+    });
+    output += '\nUse "blog <id>" to read a specific entry.\n';
+    return output;
+  },
+
+  conference: () => {
+    let output = "\nCONFERENCE TALKS:\n═══════════════════\n";
+    CONFERENCE_TALKS.forEach((post) => {
+      output += `  [${post.id}] ${post.date} - ${post.location} - *${post.title}*\n`;
+    });
+    return output;
+  },
+
   dmesg: () => `\n${BOOT_MESSAGES.join("\n")}\n`,
 
   date: () => `\n  ${new Date().toLocaleString()}\n  (Post-apocalypse local time)\n`,
 
   pgp: () => {
     const text =  `-----BEGIN PGP PUBLIC KEY BLOCK-----
-
 mQINBGmtSv0BEADyODANis/hei6W01K+2wxbS6nXqUeMFopcUlFYJTyCHGnAj7QG
 wy8YWqbkgnH0gXU7kf2K6B61A7c0t1Fh8hYLYYJ8NwJfRYrkBntSWKBAbxkWSiAH
 1rCTZn8eDOxzRzXxrUl/LCWPVNkzr2XAeaA4L9UxWmPgtqMDgLuGSid2omUpyeLM
@@ -542,7 +631,7 @@ SYSTEM STATUS REPORT
 `,
 
   hack: () => `
-You are now Administrator.
+**You are now Administrator.**
 `,
 
 };
@@ -560,7 +649,16 @@ export function processCommand(input: string): string {
     if (post) {
       return `\n[${post.date}] ${post.title}\n${"─".repeat(50)}\n${post.body}\n`;
     }
-    return `\n  ERROR: Blog entry #${args[0]} not found.\n  Use "blog" to list available entries.\n`;
+    return `\n  ERROR: Blog entry **${args[0]}** not found.\n  Use "blog" to list available entries.\n`;
+  }
+
+  if (cmd === "project" && args.length > 0) {
+    const id = parseInt(args[0]);
+    const post = PROJECTS.find((p) => p.id === id);
+    if (post) {
+      return `\n[${post.status}] ${post.title}\n${"─".repeat(50)}\n${post.body}\n`;
+    }
+    return `\n  ERROR: Project entry **${args[0]}** not found.\n  Use "project" to list available entries.\n`;
   }
 
   if (COMMANDS[cmd]) {

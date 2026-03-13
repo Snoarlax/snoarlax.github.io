@@ -1,5 +1,65 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
 import { BOOT_MESSAGES, processCommand, SNORLAX_ASCII } from "@/lib/terminal-commands";
+
+const PLACEHOLDER_IMG = "/placeholder.svg";
+
+const TerminalOutput = ({ text }: { text: string }) => {
+  return (
+    <div className="terminal-glow text-foreground whitespace-pre-wrap mb-2 font-[inherit] terminal-markdown">
+      <ReactMarkdown
+        components={{
+          p: ({ children }) => <p className="mb-2">{children}</p>,
+          h1: ({ children }) => <h1 className="text-lg font-bold mb-2 text-accent">{children}</h1>,
+          h2: ({ children }) => <h2 className="text-base font-bold mb-2 text-accent">{children}</h2>,
+          h3: ({ children }) => <h3 className="text-sm font-bold mb-1 text-accent">{children}</h3>,
+          strong: ({ children }) => <strong className="text-accent font-bold">{children}</strong>,
+          em: ({ children }) => <em className="text-muted-foreground italic">{children}</em>,
+          code: ({ children, className }) => {
+            const isBlock = className?.includes("language-");
+            return isBlock ? (
+              <pre className="bg-muted/30 border border-border p-3 rounded my-2 overflow-x-auto text-xs">
+                <code>{children}</code>
+              </pre>
+            ) : (
+              <code className="bg-muted/30 px-1 rounded text-accent">{children}</code>
+            );
+          },
+          pre: ({ children }) => <>{children}</>,
+          ul: ({ children }) => <ul className="list-disc list-inside mb-2 ml-2">{children}</ul>,
+          ol: ({ children }) => <ol className="list-decimal list-inside mb-2 ml-2">{children}</ol>,
+          li: ({ children }) => <li className="mb-0.5">{children}</li>,
+          a: ({ href, children }) => (
+            <a href={href} target="_blank" rel="noopener noreferrer" className="text-accent underline hover:text-primary">
+              {children}
+            </a>
+          ),
+          hr: () => <hr className="border-border my-3" />,
+          blockquote: ({ children }) => (
+            <blockquote className="border-l-2 border-accent/50 pl-3 my-2 text-muted-foreground italic">
+              {children}
+            </blockquote>
+          ),
+          img: ({ src, alt, title }) => (
+            <span className="block my-3 flex flex-col items-center">
+              <img
+                src={src || PLACEHOLDER_IMG}
+                alt={alt || ""}
+                className="max-w-[50%] sm:max-w-[40%] h-auto border-2 border-accent/30 rounded"
+                style={{ filter: 'sepia(1) hue-rotate(70deg) saturate(2) brightness(0.7)' }}
+              />
+              {title && (
+                <span className="block text-muted-foreground text-xs mt-1 italic text-center">{title}</span>
+              )}
+            </span>
+          ),
+        }}
+      >
+        {text}
+      </ReactMarkdown>
+    </div>
+  );
+};
 
 const Terminal = () => {
   const [bootComplete, setBootComplete] = useState(false);
@@ -49,6 +109,8 @@ const Terminal = () => {
       if (!trimmed) return;
 
       const output = processCommand(trimmed);
+      const isBlogPost = trimmed.toLowerCase().startsWith("blog ") && trimmed.trim().split(/\s+/).length > 1;
+      
       setHistory((prev) => [
         ...prev,
         { type: "input", text: trimmed },
@@ -61,6 +123,20 @@ const Terminal = () => {
       if (trimmed.toLowerCase() === "clear") {
         setHistory([]);
         setBootLines([]);
+      }
+
+      // Scroll to top of blog post after render
+      if (isBlogPost) {
+        setTimeout(() => {
+          if (scrollRef.current) {
+            // Find the last input line element and scroll to it
+            const allInputLines = scrollRef.current.querySelectorAll('[data-blog-start]');
+            const lastStart = allInputLines[allInputLines.length - 1];
+            if (lastStart) {
+              lastStart.scrollIntoView({ block: 'start' });
+            }
+          }
+        }, 50);
       }
     },
     [currentInput]
@@ -124,14 +200,15 @@ const Terminal = () => {
             {history.map((entry, i) => (
               <div key={`hist-${i}`} className="text-sm leading-relaxed">
                 {entry.type === "input" ? (
-                  <div className="terminal-glow text-foreground">
+                  <div
+                    className="terminal-glow text-foreground"
+                    {...(entry.text.toLowerCase().startsWith("blog ") ? { 'data-blog-start': 'true' } : {})}
+                  >
                     <span className="text-accent">&gt; </span>
                     {entry.text}
                   </div>
                 ) : (
-                  <pre className="terminal-glow text-foreground whitespace-pre-wrap mb-2 font-[inherit]">
-                    {entry.text}
-                  </pre>
+                  <TerminalOutput text={entry.text} />
                 )}
               </div>
             ))}
