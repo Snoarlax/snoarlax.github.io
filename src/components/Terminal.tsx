@@ -109,7 +109,6 @@ const Terminal = () => {
       if (!trimmed) return;
 
       const output = processCommand(trimmed);
-      const isBlogPost = trimmed.toLowerCase().startsWith("blog ") && trimmed.trim().split(/\s+/).length > 1;
       
       setHistory((prev) => [
         ...prev,
@@ -125,19 +124,16 @@ const Terminal = () => {
         setBootLines([]);
       }
 
-      // Scroll to top of blog post after render
-      if (isBlogPost) {
-        setTimeout(() => {
-          if (scrollRef.current) {
-            // Find the last input line element and scroll to it
-            const allInputLines = scrollRef.current.querySelectorAll('[data-blog-start]');
-            const lastStart = allInputLines[allInputLines.length - 1];
-            if (lastStart) {
-              lastStart.scrollIntoView({ block: 'start' });
-            }
+      // Scroll to top of the command after render
+      setTimeout(() => {
+        if (scrollRef.current) {
+          const allInputLines = scrollRef.current.querySelectorAll('[data-command-start]');
+          const lastStart = allInputLines[allInputLines.length - 1];
+          if (lastStart) {
+            lastStart.scrollIntoView({ block: 'start' });
           }
-        }, 50);
-      }
+        }
+      }, 50);
     },
     [currentInput]
   );
@@ -167,7 +163,7 @@ const Terminal = () => {
 
   return (
     <div className="lab-background min-h-screen flex flex-col items-center justify-start pt-[2vh] sm:pt-[4vh] cursor-text px-2 sm:px-0" onClick={focusInput}>
-      <div className="crt-frame crt-scanlines crt-vignette crt-flicker w-[95%] sm:w-2/3 min-w-0 sm:min-w-[480px] relative">
+      <div className="crt-frame crt-scanlines crt-vignette crt-flicker w-[95%] sm:w-[80%] lg:w-[75%] min-w-0 sm:min-w-[480px] max-w-[1100px] relative">
           <div className="relative">
             {/* Snorlax watermark - outside scroll container */}
             <div className="snorlax-watermark" aria-hidden="true">
@@ -175,7 +171,7 @@ const Terminal = () => {
             </div>
           <div
             ref={scrollRef}
-            className="crt-screen relative p-6 md:p-10 h-[62vh] overflow-y-auto scrollbar-hide"
+            className="crt-screen relative p-6 md:p-10 h-[75vh] overflow-y-auto scrollbar-hide"
           >
         {/* Boot sequence */}
         {showBoot && bootLines.map((line, i) => (
@@ -202,7 +198,7 @@ const Terminal = () => {
                 {entry.type === "input" ? (
                   <div
                     className="terminal-glow text-foreground"
-                    {...(entry.text.toLowerCase().startsWith("blog ") ? { 'data-blog-start': 'true' } : {})}
+                    data-command-start="true"
                   >
                     <span className="text-accent">&gt; </span>
                     {entry.text}
