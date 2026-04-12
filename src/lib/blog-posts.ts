@@ -12,11 +12,11 @@ export const BLOG_POSTS: BlogPost[] = [
     title: "Creating and understanding Linux USB Kernel drivers",
     body: `# Introduction
 
-This is a Blogpost about a project involving creating a Kernel Driver in Linux. It summarises the steps I took and explains some of the theory behind the code needed for the driver.
+This is Blogpost is about a project involving creating Linux kernel driver. It involves the steps required to create a driver for a custom USB device and explains some of the theory behind it.
 
-Recently, I've been doing a lot of research into the Linux kernel and how it works under the hood. There are some great resources out there - specifically the books **Linux Kernel Development** and **Linux Device Drivers**. I really wanted to understand what "Linux" was. **Linux Kernel Development** offered an amazing, in-depth overview of how Linux works and what makes it special. When understanding what an operating system is, you only need to consider the **kernel**. This is the code that manages all the 'boring' details so our user space programs can function - virtualising memory and the processor so developers making programs in user-space do not have to consider what the hundreds of other unrelated programs running on the system are doing. Could you imagine how hard it would be to make a program if another program could mess with my memory regions, or take control of the processor when my program was using it, and never hand it back? The kernel abstracts these details away for you, so user-space developers can focus on making their programs work.
+Recently, I've been doing a lot of research into the Linux kernel and how it works under the hood. There are some great resources out there - specifically the books **Linux Kernel Development** and **Linux Device Drivers**. I really wanted to understand what "Linux" was. **Linux Kernel Development** offered an amazing, in-depth overview of how it works and what makes it special. When understanding what an operating system is, you only really need to consider the **kernel**. This is the code that manages all the 'boring' details required for our user space programs to function - virtualising memory and the processor so developers making programs in user space do not have to consider what the hundreds of other unrelated programs running on the system are doing. Could you imagine how hard it would be to make a program if another program could mess with the program's memory regions, or take control of the processor when the program was in the middle of using it and never hand it back? The kernel abstracts these details away for you, so user space developers can focus on making their programs work.
 
-One of the many jobs of the kernel is to provide an interface between the user space and hardware. If my browser wants to open a TCP connection to a remote HTTP server using my Wi-Fi interface, the browser does not need to implement logic to determine the bits it needs to send on the wire to my Wi-Fi card. Instead, the kernel supports several APIs called **syscalls** that enable user-space programs (like my browser) to interface with the kernel and hardware (which the kernel can directly interface with). In particular, the browser would use the **socket()** and **connect()** syscall to open a TCP connection to the remote server, and get a **file descriptor** where it can read/write data on that TCP socket.
+One of the many jobs of the kernel is to provide an interface between the user space and hardware. If my browser wants to open a TCP connection to a remote HTTP server using a Wi-Fi interface, the browser does not need to implement logic to determine the bits it needs to send on the wire to the Wi-Fi card. Instead, the kernel supports several APIs called **syscalls** that enable user space programs (like my browser) to interface with the kernel and hardware (which the kernel can directly interface with). In particular, the browser would use the **socket()** and **connect()** syscall to open a TCP connection to the remote server, and get a **file descriptor** where it can read/write data on that TCP socket.
 
 This particular role of the kernel was something I wanted to understand better - how does the kernel know how to communicate with these devices? If you have any electronic device, could you use the Linux kernel to enable that device to be interfaced with through an operating system? These were the questions I wanted to look into.
 
@@ -30,13 +30,13 @@ There are lots of different types of kernel drivers that kernel developers can c
 
 *Introducing... **Autosprayer ©** by Snoarlax industries!*
 
-**Autosprayer ©** is a USB device that has a **single interface** containing a **single BULK OUT endpoint**. This endpoint **activates the sprayer when it receives a "\x01"** and **deactivates it when it receives "\x00"**. The firmware for this device was vibecoded, and the source is available in the **Autosprayer ©** repository linked at the bottom. Fully understanding the firmware is not needed to understand kernel drivers, but USB devices such as **Autosprayer ©** have some differences that are really useful to understand. Specifically, the concept of USB **interfaces** and **endpoints**, which the blogpost explains later on.
+**Autosprayer ©** is a USB device that has a **single interface** containing a **single BULK OUT endpoint**. This endpoint **activates the sprayer when it receives a "0x01"** and **deactivates it when it receives "0x00"**. The firmware for this device was vibe-coded, and the source is available in the **Autosprayer ©** repository linked at the bottom. Fully understanding the firmware is not needed to understand kernel drivers, but USB devices such as **Autosprayer ©** have some differences that are really useful to understand. Specifically, the concept of USB **interfaces** and **endpoints**, which is explained later on.
 
 # Kernel Driver/Modules
 
 *When referring to Linux drivers, I will use the Linux term of **module** or **kernel module**.*
 
-I have a physical USB device now, but when I plug it in, the operating system does not understand how to use it. This can be confirmed by looking at \`dmesg\`, which prints what is in the \`kernel ring buffer\`. Kernel modules print debug messages here, and they contain a lot of useful information for debugging issues with the kernel.
+I have a physical USB device now, but when I plug it in, the operating system does not understand how to use it. This can be confirmed by looking at \`dmesg\`, which prints what is in the **kernel ring buffer**. Kernel modules print debug messages here, and they contain a lot of useful information for debugging issues with the kernel.
 
 \`\`\`bash
 [ 1406.330925] usb 3-1.4.2: new full-speed USB device number 10 using xhci_hcd
@@ -128,7 +128,7 @@ module_exit(autosprayer_exit);
 
 ### File operations
 
-If you use Linux a lot, you may be familiar with the concept "Everything is a file". Kernel modules enable user-space programs to interface with devices through the Linux Virtual File System (VFS). This is where some "files" are not just actually stored bits of text but are **device files** (typically stored under the **/dev** directory for I/O devices) of which a specific kernel module maps to. Reading or writing to these files may *look* like reading or writing a normal text file, but under the hood, the kernel actually runs a custom function written in the kernel module.
+If you use Linux a lot, you may be familiar with the concept "Everything is a file". Kernel modules enable user space programs to interface with devices through the Linux Virtual File System (VFS). This is where some "files" are not just actually stored bits of text but are **device files** (typically stored under the **/dev** directory for I/O devices) of which a specific kernel module maps to. Reading or writing to these files may *look* like reading or writing a normal text file, but under the hood, the kernel actually runs a custom function written in the kernel module.
 
 **Device files** are used extensively by Linux already - if you take a look at the **/dev** directory, you will see lots of files that enable you to interface with various hardware on the system. Each of these **device files** has a **major** number that specifies which driver is used to handle file operations on that **inode**. It also has a **minor** number, which is passed to the kernel module to tell the module which instance of that device is being interacted with (such as when multiple copies of the same device are plugged in). For example, looking at **/dev/input/mouse0** lets us look at information about one of the input devices in our system:
 
@@ -346,7 +346,8 @@ I did the project as a means of learning about kernel driver development, with t
 # Reference materials
 
 Love, R. (2010). Linux Kernel Development (3rd ed.). Addison-Wesley Professional.
-Corbet, J., Rubini, A., & Kroah-Hartman, G. (2005). Linux Device Drivers (3rd ed.). O'Reilly Media. Available free online at: https://lwn.net/Kernel/LDD3/`
+Corbet, J., Rubini, A., & Kroah-Hartman, G. (2005). Linux Device Drivers (3rd ed.). O'Reilly Media. Available free online at: https://lwn.net/Kernel/LDD3/
+Kiani, S. Autosprayer Repository. [https://github.com/Snoarlax/autosprayer/](https://github.com/Snoarlax/autosprayer/)`
   },
   {
     id: 2,

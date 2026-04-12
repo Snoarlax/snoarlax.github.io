@@ -45,7 +45,7 @@ const TerminalOutput = ({ text }: { text: string }) => {
               <img
                 src={src || PLACEHOLDER_IMG}
                 alt={alt || ""}
-                className="max-w-[50%] sm:max-w-[40%] h-auto border-2 border-accent/30 rounded"
+                className="max-w-full h-auto border-2 border-accent/30 rounded"
                 style={{ filter: 'sepia(1) hue-rotate(70deg) saturate(2) brightness(0.7)' }}
               />
               {title && (
