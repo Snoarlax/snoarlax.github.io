@@ -162,8 +162,8 @@ const Terminal = () => {
   const focusInput = () => inputRef.current?.focus();
 
   return (
-    <div className="lab-background min-h-screen flex flex-col items-center justify-start pt-[2vh] sm:pt-[4vh] cursor-text px-2 sm:px-0" onClick={focusInput}>
-      <div className="crt-frame crt-scanlines crt-vignette crt-flicker w-[95%] sm:w-[80%] lg:w-[75%] min-w-0 sm:min-w-[480px] max-w-[1100px] relative">
+    <div className="lab-background min-h-screen flex flex-col items-center justify-center cursor-text px-2 sm:px-0" onClick={focusInput}>
+      <div className="crt-frame crt-scanlines crt-vignette crt-flicker w-[95%] sm:w-[85%] lg:w-[80%] min-w-0 sm:min-w-[480px] max-w-[1400px] relative">
           <div className="relative">
             {/* Snorlax watermark - outside scroll container */}
             <div className="snorlax-watermark" aria-hidden="true">
@@ -171,7 +171,7 @@ const Terminal = () => {
             </div>
           <div
             ref={scrollRef}
-            className="crt-screen relative p-6 md:p-10 h-[75vh] overflow-y-auto scrollbar-hide"
+            className="crt-screen relative p-6 md:p-10 h-[80vh] overflow-y-auto scrollbar-hide"
           >
         {/* Boot sequence */}
         {showBoot && bootLines.map((line, i) => (
