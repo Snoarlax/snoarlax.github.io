@@ -297,7 +297,7 @@ SYSTEM STATUS REPORT
     - Linux Kernel
     - Reverse Engineering
   
-  All systems operational.
+  All systems operational. 1 unpatched vulnerability needs to be addressed.
 `,
 
   hack: () => `
