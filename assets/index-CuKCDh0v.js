@@ -873,7 +873,7 @@ SYSTEM STATUS REPORT
     - Linux Kernel
     - Reverse Engineering
   
-  All systems operational.
+  All systems operational. 1 unpatched vulnerability needs to be addressed.
 `,hack:()=>`
 **You are now Administrator.**
 `};function Gf(e){const t=e.trim().toLowerCase().split(/\s+/),n=t[0],r=t.slice(1);if(n==="clear")return"";if(n==="blog"&&r.length>0){const i=parseInt(r[0]),o=Qf.find(l=>l.id===i);return o?`
