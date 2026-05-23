@@ -8,6 +8,66 @@ export interface BlogPost {
 export const BLOG_POSTS: BlogPost[] = [
   {
     id: 1,
+    date: "2026-05-01",
+    title: "AsteroidOS HackWatch - The hacking PDA on your wrist",
+    body: `# Asteroid Hackwatch
+
+This is a blogpost on a project involving creating a smartwatch hacking PDA using AsteroidOS. It gives an overview of what AsteroidOS is and demonstrates the process taken to create applications on it. It introduces "Asteroid Hackwatch", an open source application that enables smart watches compatible with AsteroidOS to be used as a hacking PDA.
+
+## Asteroid OS
+
+Asteroid OS is an open-source Linux based operating system designed for smart watches. Compatible watches can be flashed with AsteroidOS for users who want an open source alternative to their OEM firmware. This distribution is built using the OpenEmbedded build system, using open source layers relating to smartwatches to create a Linux based firmware image compatible with many WearOS devices.
+
+Asteroid OS supports Qt applications which are written in QML and C++. QML is a declarative language for creating GUIs, and the application code itself is written in C++. The public repositories linked at the bottom provide the source for several example Qt applications that can be built and loaded onto devices running AsteroidOS.
+
+It is worth noting that Asteroid OS is a distribution of Linux. Having a embedded Linux device available on your wrist is powerful enough by itself - Hackwatch simply needs to provide a suitable GUI so user's can perform actions on the fly.
+
+## Hackwatch Software
+
+Hackwatch is a Qt application that provides several modules to the user. This blogpost will explain the two modules released as part of v0.1 of Hackwatch:
+- Script Runner
+- Ducky
+
+The source for this application can be viewed and built in the asteroid-hack repository linked at the bottom. It also has been merged with the official Asteroid OS packages enabling users to install asteroid-hack using the following:
+
+\`\`\`bash
+opkg install asteroid-hackwatch
+\`\`\`
+
+Additionally, a bitbake recipe was provided that automates the build process for this application. This recipe is available in the **recipes-devtools/asteroid-hackwatch/asteroid-hackwatch_git.bb** file in the meta-asteroid-community repository.
+
+### Script runner module
+
+The script runner module reads shell scripts stored in the user's home directory, and provides a GUI for these scripts to be run. Privileged execution can be performed using sudo, which was built and installed as a dependency of asteroid-hackwatch.
+
+Common use cases involve running scripts relating to management of external servers, local tooling such as nmap or other network enumeration/monitoring tools. Additionally, services on the watch can be easily managed using the script runner module. For example, the WiFi interface can be manually disabled using the script runner module to save power on the watch.
+
+![keyboard_module](/images/script_runner_module.webp)
+
+### Ducky module
+
+The Ducky module allows users to connect the watch to a device using USB to run pre-made keystrokes at speeds impossible for humans to emulate. For example, a user could connect the watch to a laptop, and run a ducky script that performs system enumeration to quickly grab sensitive system information and exfiltrate it either to a server or the watch itself.
+
+![ducky_module](/images/ducky_module.webp)
+
+This module requires the Linux Kernel to be compiled with a flag that enables a specific module to be loaded. This kernel module enables the kernel to emulate a Keyboard HID, which is what the Ducky module does. Additionally, the keyboard scripts are written in a custom language and must be premade and placed in the correct directory to be detected by the Ducky module.
+
+### Future modules
+
+Smartwatches have various interfaces many other devices lack, including NFC. The drivers for these interfaces are typically Android HAL blobs. These HALs are either proprietary binary blobs or open source drivers that are not well maintained, and are generally compiled for Bionic systems (Android) rather than glibc (AsteroidOS). AsteroidOS supports these interfaces by using these drivers despite being compiled for a different C library. It does this using Libhybris, which enables HALs built on Bionic to be run on glibc systems.
+
+Most of this has been abstracted away for AsteroidOS developers using daemons that communicate through the device D-Bus, but future modules would include support for attacks involving these interfaces. NFC has a big attack surface that Hackwatch could support by either using the Android HAL driver for the NFC interface or an existing daemon that does this and exposes a D-Bus interface for userspace to interface with.
+
+## Useful resources
+[https://github.com/AsteroidOS/meta-asteroid-community](https://github.com/AsteroidOS/meta-asteroid-community)
+[https://github.com/Snoarlax/asteroid-hack](https://github.com/Snoarlax/asteroid-hack)
+
+## Disclaimer
+
+This project is for research purposes only. Do not use hackwatch or any other tool to gain access to systems you are not authorised to perform these activities on.`
+  },
+  {
+    id: 2,
     date: "2026-04-12",
     title: "Creating and understanding Linux USB Kernel drivers",
     body: `# Introduction
@@ -350,7 +410,7 @@ Corbet, J., Rubini, A., & Kroah-Hartman, G. (2005). Linux Device Drivers (3rd ed
 Kiani, S. Autosprayer Repository. [https://github.com/Snoarlax/autosprayer/](https://github.com/Snoarlax/autosprayer/)`
   },
   {
-    id: 2,
+    id: 3,
     date: "2026-01-01",
     title: "Cross-Origin isolation mechanisms in browsers",
     body: `# Introduction
@@ -469,7 +529,7 @@ Cross-origin isolation is definitely the way to go, and maintainers are looking 
 `,
   },
   {
-    id: 3,
+    id: 4,
     date: "2023-06-12",
     title: "AWS Cognito exploitation",
     body: `# How I [probably could have] hacked [around] 300 websites in [almost] a single script
@@ -551,7 +611,7 @@ Furthermore, due to the isomorphic nature of cloud, attackers can programmatical
 `,
   },
   {
-    id: 4,
+    id: 5,
     date: "2022-05-22",
     title: "A technical deep dive into Cross Site Request Forgery",
     body: `# Introduction

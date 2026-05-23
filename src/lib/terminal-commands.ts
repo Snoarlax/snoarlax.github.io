@@ -73,15 +73,15 @@ const PROJECTS = [
   {
     id: 1,
     status: "COMPLETE",
-    title: "Kernel Driver development",
+    title: "AsteroidOS HackWatch",
     body: `Writeup available in blog section\n`
 
   },
   {
     id: 2,
     status: "COMPLETE",
-    title: "AsteroidOS HackWatch",
-    body: `Writeup in progress\n`
+    title: "Kernel Driver development",
+    body: `Writeup available in blog section\n`
   },
   {
     id: 3,
